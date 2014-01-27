@@ -45,6 +45,7 @@ function usage () {
     "          -b pushes a binary\n" + 
     "          -c compresses and pushes a dump dir\n" + 
     "          -a passes arguments to tessel scripts\n" + 
+    "          -f writes the script to flash so it is run automatically on boot\n" + 
     // "       tessel pushall <filename>\n"+
     "   tessel wifi <ssid> <pass> <security (wep/wap/wap2, wap2 by default)>\n"+
     "   tessel wifi <ssid>\n" +
@@ -92,7 +93,7 @@ function zipCode (dir, client) {
   tesselClient.tarCode(dir, dir, function (err, pushdir, tarstream){
     // deploy that bundle
     console.error(('Deploying...').grey);
-    client.deployBundle(tarstream, false);
+    client.deployBundle(tarstream, {});
   });
 }
 
@@ -112,7 +113,7 @@ function pushCode (file, args, client, options) {
     tesselClient.bundleCode(pushdir, relpath, args, function (err, tarstream) {
       console.error(('Deploying...').grey);
 
-      client.deployBundle(tarstream, options.save);
+      client.deployBundle(tarstream, options);
     });
   });
 }
@@ -120,7 +121,7 @@ function pushCode (file, args, client, options) {
 function pushTar (file, client) {
   console.error(('Deploying tar ' + file).grey);
   var tarbuff = fs.readFileSync(file);
-  client.deployBundle(tarbuff, false);
+  client.deployBundle(tarbuff, {});
 }
 
 function pushBinary (file, client) {
@@ -296,7 +297,8 @@ function onconnect (modem, port, host) {
       save: false,
       binary: false,
       compress: false,
-      tar: false
+      tar: false,
+      flash: false,
     };
 
     // for all the process args
@@ -324,6 +326,9 @@ function onconnect (modem, port, host) {
         console.error(("\nuploading tarball", process.argv.slice(i+1)[0]).grey);
         pushTar(process.argv.slice(i+1)[0], client);
         options.tar = true;
+        break;
+      case '-f' || '--flash':
+        options.flash  = true;
         break;
       default:
         break;
@@ -446,6 +451,8 @@ function onconnect (modem, port, host) {
       retry();
     }
 
+  } else if (process.argv[2] == 'erase') {
+    client.erase();
   } else if (process.argv[2] == 'logs' || process.argv[2] == 'listen') {
     client.on('command', function (command, data, debug) {
       if (debug) {
