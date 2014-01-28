@@ -118,10 +118,10 @@ function pushCode (file, args, client, options) {
   });
 }
 
-function pushTar (file, client) {
+function pushTar (file, client, options) {
   console.error(('Deploying tar ' + file).grey);
   var tarbuff = fs.readFileSync(file);
-  client.deployBundle(tarbuff, {});
+  client.deployBundle(tarbuff, options);
 }
 
 function pushBinary (file, client) {
@@ -324,8 +324,8 @@ function onconnect (modem, port, host) {
         break;
       case '-t' || '--tar':
         console.error(("\nuploading tarball", process.argv.slice(i+1)[0]).grey);
-        pushTar(process.argv.slice(i+1)[0], client);
         options.tar = true;
+        pushTar(process.argv.slice(i+1)[0], client, options);
         break;
       case '-f' || '--flash':
         options.flash  = true;
