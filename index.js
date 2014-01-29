@@ -97,22 +97,66 @@ function zipCode (dir, client) {
   });
 }
 
-function pushCode (file, args, client, options) {
-  tesselClient.detectDirectory(file, function (err, pushdir, relpath) {
-    if (err) {
-      setTimeout(function () {
-        console.error('ERR'.red, err.message);
-        process.exit(1);
-      }, 10)
-      return;
+function bundle (arg)
+{
+  var hardwareResolve = require('hardware-resolve');
+  var effess = require('effess');
+
+  function duparg (arr) {
+    var obj = {};
+    arr.forEach(function (arg) {
+      obj[arg] = arg;
+    })
+    return obj;
+  }
+
+  var ret = {};
+
+  hardwareResolve.root(arg, function (err, pushdir, relpath) {
+    var files;
+    if (!pushdir) {
+      if (fs.lstatSync(arg).isDirectory()) {
+        ret.warning = String(err).replace(/\.( |$)/, ', pushing just this directory.');
+
+        pushdir = fs.realpathSync(arg);
+        relpath = fs.lstatSync(path.join(arg, 'index.js')) && 'index.js';
+        files = duparg(effess.readdirRecursiveSync(arg, {
+          inflateSymlinks: true,
+          excludeHiddenUnix: true
+        }))
+      } else {
+        ret.warning = String(err).replace(/\.( |$)/, ', pushing just this file.');
+
+        pushdir = path.dirname(fs.realpathSync(arg));
+        relpath = path.basename(arg);
+        files = duparg([path.basename(arg)]);
+      }
+    } else {
+      files = hardwareResolve.list(pushdir)
     }
 
-    setTimeout(function () {
-      console.error(('Bundling directory ' + pushdir).grey);
-    }, 100);
-    tesselClient.bundleCode(pushdir, relpath, args, function (err, tarstream) {
-      console.error(('Deploying...').grey);
+    ret.pushdir = pushdir;
+    ret.relpath = relpath;
+    ret.files = files;
+  })
 
+  Object.keys(ret.files).forEach(function (file) {
+    ret.files[file] = fs.realpathSync(ret.files[file]);
+  })
+
+  return ret;
+}
+
+function pushCode (file, args, client, options) {
+  setTimeout(function () {
+    var ret = bundle(file);
+    if (ret.warning) {
+      console.error(('WARN').yellow, ret.warning.grey);
+    }
+    console.error(('Bundling directory ' + ret.pushdir).grey);
+
+    tesselClient.bundleFiles(ret.relpath, args, ret.files, function (err, tarbundle) {
+      console.error(('Deploying...').grey);
       client.deployBundle(tarstream, options);
     });
   });
@@ -350,6 +394,9 @@ function onconnect (modem, port, host) {
 
     client.once('script-start', function () {
       // Pipe output to client
+      while (null !== (chunk = client.stdout.read())) {
+        // Flush
+      }
       client.stdout.pipe(process.stdout);
 
       // Repl hack
