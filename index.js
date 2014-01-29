@@ -133,6 +133,11 @@ function bundle (arg)
       }
     } else {
       files = hardwareResolve.list(pushdir)
+
+      // Ensure the request file is pushed even if blacklisted
+      if (!(relpath in files)) {
+        files[relpath] = path.join(pushdir, relpath);
+      }
     }
 
     ret.pushdir = pushdir;
