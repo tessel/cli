@@ -136,17 +136,18 @@ function bundle (arg)
 
       // Ensure the request file is pushed even if blacklisted
       if (!(relpath in files)) {
-        files[relpath] = path.join(pushdir, relpath);
+        files[relpath] = relpath;
       }
     }
 
     ret.pushdir = pushdir;
     ret.relpath = relpath;
     ret.files = files;
-  })
 
-  Object.keys(ret.files).forEach(function (file) {
-    ret.files[file] = fs.realpathSync(ret.files[file]);
+    // Update files values to be full paths in pushFiles.
+    Object.keys(ret.files).forEach(function (file) {
+      ret.files[file] = fs.realpathSync(path.join(pushdir, ret.files[file]));
+    })
   })
 
   return ret;
