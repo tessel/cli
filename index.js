@@ -28,6 +28,7 @@ temp.track();
 var argv = optimist
   .boolean('v')
   .boolean('no-retry')
+  .boolean('verbose')
   .argv;
 
 // process.on('uncaughtException', function (err) {
@@ -149,6 +150,13 @@ function bundle (arg)
       ret.files[file] = fs.realpathSync(path.join(pushdir, ret.files[file]));
     })
   })
+
+  if (argv.verbose) {
+    console.error('LOG'.cyan, 'Bundling...')
+    Object.keys(ret.files).forEach(function (file) {
+      console.error('LOG'.cyan, ' ->', file);
+    });
+  }
 
   return ret;
 }
