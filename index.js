@@ -152,9 +152,9 @@ function bundle (arg)
   })
 
   if (argv.verbose) {
-    console.error('LOG'.cyan, 'Bundling...')
+    console.error('LOG'.cyan.blueBG, 'Bundling...')
     Object.keys(ret.files).forEach(function (file) {
-      console.error('LOG'.cyan, ' ->', file);
+      console.error('LOG'.cyan.blueBG, ' \u2192', file);
     });
   }
 
