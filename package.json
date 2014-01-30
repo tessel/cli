@@ -31,7 +31,7 @@
     "keypress": "~0.2.1",
     "read": "~1.0.5",
     "request": "~2.33.0",
-    "hardware-resolve": "~0.0.6",
+    "hardware-resolve": "~0.0.7",
     "effess": "~0.0.1"
   },
   "optionalDependencies": {
