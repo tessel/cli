@@ -20,16 +20,6 @@ if [ $ret -ne 0 ]; then
 fi
 echo "git version: $git_version"
 
-# Check for java
-java_version=`(java -version 2> /dev/null) && (java -version 2>&1 | head -n 1 | tr -d 'a-z "')`
-ret=$?
-if [ $ret -ne 0 ]; then
-  echo "You need java installed to install tessel (java -version reports: $java_version)." >&2
-  echo "Please install a JRE and try again." >&2
-  exit $ret
-fi
-echo "java version: $java_version"
-
 
 ## INSTALL
 
