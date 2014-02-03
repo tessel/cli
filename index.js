@@ -514,6 +514,7 @@ function onconnect (modem, port, host) {
 
   } else if (process.argv[2] == 'erase') {
     client.erase();
+    
   } else if (process.argv[2] == 'logs' || process.argv[2] == 'listen') {
     client.on('command', function (command, data, debug) {
       if (debug) {
