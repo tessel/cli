@@ -6,6 +6,7 @@ var common = require('../src/cli')
 var keypress = require('keypress')
 var read = require('read')
 var colonyCompiler = require('colony-compiler')
+var fs = require('fs')
 
 // Setup cli.
 common.basic();
@@ -36,6 +37,11 @@ var argv = require("nomnom")
     abbr: 'i',
     flag: true,
     help: 'Enter the REPL.'
+  })
+  .option('receive', {
+    abbr: 'r',
+    flag: false,
+    help: 'Receive file'
   })
   // .option('remote', {
   //   abbr: 'r',
@@ -157,6 +163,15 @@ common.controller(function (err, client) {
         process.exit(code);
       });
     });
+
+    if (argv.receive) {
+      var file = typeof argv.receive === 'string' ? argv.receive : "out.bin";
+      client.on('rawMessage', function (tag, data) {
+        if (tag == 0xFFFF) {
+          fs.writeFileSync(file, data);
+        }
+      })
+    }
 
     // repl is implemented in repl/index.js. Uploaded to tessel, it sends a
     // message telling host it's ready, then receives stdin via
