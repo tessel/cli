@@ -181,12 +181,12 @@ common.controller(true, function (err, client) {
         });
       });
 
-      if (argv.receive) {
+      if (argv["upload-dir"]) {
         client.on('rawMessage', function (tag, data) {
           if (tag == 0x4113) {
             try {
               var packet = require('structured-clone').deserialize(data);
-              fs.writeFileSync(path.resolve(argv.receive, path.basename(packet.filename)), packet.buffer);
+              fs.writeFileSync(path.resolve(argv["upload-dir"], path.basename(packet.filename)), packet.buffer);
               console.log(packet.filename, 'written');
             } catch (e) {
               console.error('ERR: invalid sendfile packet received.');
