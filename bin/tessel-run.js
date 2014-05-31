@@ -38,6 +38,11 @@ var argv = require("nomnom")
       return require('./package.json').version.replace(/^v?/, 'v');
     }
   })
+  .option('await-wifi', {
+    abbr: 'w',
+    flag: true,
+    help: 'Await wifi connection before running script.'
+  })
   .option('interactive', {
     abbr: 'i',
     flag: true,
@@ -131,99 +136,114 @@ function repl (client)
   }
 }
 
-common.controller(true, function (err, client) {
-  client.listen(true, [10, 11, 12, 13, 20, 21, 22])
-  client.on('error', function (err) {
-    if (err.code == 'ENOENT') {
-      console.error('Error: Cannot connect to Tessel locally.')
-    } else {
-      console.error(err);
-    }
-  })
-
-  // Forward stdin by line.
-  process.stdin.resume();
-  process.stdin.pipe(client.stdin);
-
-  // Check pushing path.
-  if (argv.interactive) {
-    var pushpath = path.resolve(__dirname, '../scripts/repl');
-  } else if (!argv.script) {
-    usage();
+function awaitConfig (client, next) {
+  if (!argv['await-wifi']) {
+    next();
   } else {
-    var pushpath = argv.script;
-  }
-
-  // Command command.
-  var updating = false;
-  client.on('command', function (command, data) {
-    if (command == 'u') {
-      verbose && console.error(data.grey)
-    } else if (command == 'U') {
-      if (updating) {
-        // Interrupted by other deploy
-        process.exit(0);
+    client.wifiStatus(function (err, data) {
+      if (data && data.connected && data.ip) {
+        next();
+      } else {
+        setTimeout(awaitConfig, 1000*3, client, next);
       }
-      updating = true;
+    })
+  }
+}
+
+common.controller(true, function (err, client) {
+  awaitConfig(client, function () {
+    client.listen(true, [10, 11, 12, 13, 20, 21, 22])
+    client.on('error', function (err) {
+      if (err.code == 'ENOENT') {
+        console.error('Error: Cannot connect to Tessel locally.')
+      } else {
+        console.error(err);
+      }
+    })
+
+    // Forward stdin by line.
+    process.stdin.resume();
+    process.stdin.pipe(client.stdin);
+
+    // Check pushing path.
+    if (argv.interactive) {
+      var pushpath = path.resolve(__dirname, '../scripts/repl');
+    } else if (!argv.script) {
+      usage();
+    } else {
+      var pushpath = argv.script;
     }
-  });
 
-  builds.checkBuildList(client.version, function (allBuilds, needUpdate){
-    if (!allBuilds) return pushCode();
-
-    if (needUpdate){
-      // show warning
-      console.log(colors.red("NOTE: There is a newer version of firmware available. Use \"tessel update\" to update to the newest version"));
-    }
-    
-    pushCode();
-  });
-
-  function pushCode(){
-    client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || []), function () {
-      // script-start emitted.
-      console.error(colors.grey('Running script...'));
-
-      // Stop on Ctrl+C.
-      process.on('SIGINT', function() {
-        setTimeout(function () {
-          // timeout :|
-          console.error(colors.grey('Script aborted'));
-          process.exit(131);
-        }, 200);
-        client.stop();
-      });
-
-      client.once('script-stop', function (code) {
-        client.close(function () {
-          process.exit(code);
-        });
-      });
-
-      client.on('rawMessage', function (tag, data) {
-        if (tag == 0x4113) {
-          if (!argv['upload-dir']) {
-            console.error(colors.red('ERR:'), colors.grey('ignoring uploaded file. call tessel with --upload-dir to save files from a running script.'));
-            return;
-          }
-
-          try {
-            var packet = require('structured-clone').deserialize(data);
-            fs.writeFileSync(path.resolve(argv['upload-dir'], path.basename(packet.filename)), packet.buffer);
-            console.error(colors.grey(util.format(packet.filename, 'saved to', argv['upload-dir'])));
-          } catch (e) {
-            console.error(colors.red('ERR:'), colors.grey('invalid sendfile packet received.'));
-          }
+    // Command command.
+    var updating = false;
+    client.on('command', function (command, data) {
+      if (command == 'u') {
+        verbose && console.error(data.grey)
+      } else if (command == 'U') {
+        if (updating) {
+          // Interrupted by other deploy
+          process.exit(0);
         }
-      });
-      
-      // repl is implemented in repl/index.js. Uploaded to tessel, it sends a
-      // message telling host it's ready, then receives stdin via
-      // process.on('message')
-      if (argv.interactive) {
-        repl(client);
+        updating = true;
       }
     });
-  }
-  
+
+    builds.checkBuildList(client.version, function (allBuilds, needUpdate){
+      if (!allBuilds) return pushCode();
+
+      if (needUpdate){
+        // show warning
+        console.log(colors.red("NOTE: There is a newer version of firmware available. Use \"tessel update\" to update to the newest version"));
+      }
+      
+      pushCode();
+    });
+
+    function pushCode(){
+      client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || []), function () {
+        // script-start emitted.
+        console.error(colors.grey('Running script...'));
+
+        // Stop on Ctrl+C.
+        process.on('SIGINT', function() {
+          setTimeout(function () {
+            // timeout :|
+            console.error(colors.grey('Script aborted'));
+            process.exit(131);
+          }, 200);
+          client.stop();
+        });
+
+        client.once('script-stop', function (code) {
+          client.close(function () {
+            process.exit(code);
+          });
+        });
+
+        client.on('rawMessage', function (tag, data) {
+          if (tag == 0x4113) {
+            if (!argv['upload-dir']) {
+              console.error(colors.red('ERR:'), colors.grey('ignoring uploaded file. call tessel with --upload-dir to save files from a running script.'));
+              return;
+            }
+
+            try {
+              var packet = require('structured-clone').deserialize(data);
+              fs.writeFileSync(path.resolve(argv['upload-dir'], path.basename(packet.filename)), packet.buffer);
+              console.error(colors.grey(util.format(packet.filename, 'saved to', argv['upload-dir'])));
+            } catch (e) {
+              console.error(colors.red('ERR:'), colors.grey('invalid sendfile packet received.'));
+            }
+          }
+        });
+        
+        // repl is implemented in repl/index.js. Uploaded to tessel, it sends a
+        // message telling host it's ready, then receives stdin via
+        // process.on('message')
+        if (argv.interactive) {
+          repl(client);
+        }
+      });
+    }
+  });
 })
