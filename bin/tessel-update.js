@@ -126,6 +126,24 @@ function isUrl (str){
   return str.match(/^(ftp|http|https):\/\//);
 }
 
+function isCLIValid (min, max) {
+  var cliVer;
+  try {
+    cliVer = require('../package.json').version;
+  } catch (e) {
+    return false;
+  }
+
+  if (!cliVer) return false;
+
+  if ( (!min || min == "*" || min <= cliVer) 
+    && (!max || max == "*" || max >= cliVer) ) {
+    return true;
+  }
+
+  return false;
+}
+
 function update(client, wifiVer){
   if (process.argv.length == 2 || argv.force || argv.dfu){
     // if there's only 2 args apply latest firmware patch
@@ -137,7 +155,12 @@ function update(client, wifiVer){
         return client && client.close();
       }
       if (needUpdate || argv.force) {
-        
+        // check for valid CLI version
+        if (!isCLIValid(allBuilds[0].min_cli, allBuilds[0].max_cli)) {
+          logs.err("CLI version is not supported with this firmware build. CLI must be between", allBuilds[0].min_cli, "and", allBuilds[0].max_cli);
+          return client && client.close();
+        }
+
         // check if we need a wifi update
         var wifiUpdate = function (){};
         if ( (argv.dfu && argv.wifi) || // if its in dfu mode and a wifi flag is passed, do both updates
@@ -173,8 +196,18 @@ function update(client, wifiVer){
       // if it's a local path just send this file
       restoreBuild(fs.readFileSync(updateVer), client);
     } else if (argv.build){ 
-      // rebuild url and download by build number
-      applyBuild(builds.utils.buildsPath+"firmware/tessel-firmware-"+argv.build+".bin", client);
+      // get the head of the build
+      builds.getBuildDetails(argv.build, function (details){
+        // check for valid CLI version
+        if (!isCLIValid(details.min_cli, details.max_cli)) {
+          logs.err("CLI version is not supported with this firmware build. CLI must be between", details.min_cli, "and", details.max_cli);
+          return client && client.close();
+        }
+
+        // rebuild url and download by build number
+        applyBuild(builds.utils.buildsPath+"firmware/tessel-firmware-"+argv.build+".bin", client);
+      });
+
     } else if (argv.wifi) {
       // apply the wifi build
       applyRam(builds.utils.buildsPath+"wifi/"+argv.wifi+".bin", client);

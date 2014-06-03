@@ -133,7 +133,7 @@ prototype.wifiStatus = function (next) {
 
 prototype.wifiErase = function (next) {
   this.command('D', new Buffer('erase'), function(){
-    console.error('Erasing saved wifi profiles'.grey);
+    logs.info('Erasing saved wifi profiles');
   });
 
   this.on('command', function oncommand (command,data) {
