@@ -115,6 +115,20 @@ function checkBuildList (version, next) {
   
 }
 
+function getBuildDetails (buildShortURL, next) {
+  request.head(utils.buildsPath+"firmware/tessel-firmware-"+buildShortURL+".bin", function (err, res) {
+    if (err) return next(null);
+    var buildDetails = {
+      min_cli: res.headers["x-amz-meta-min_cli"] ? res.headers["x-amz-meta-min_cli"] : "*"
+      , max_cli: res.headers["x-amz-meta-max_cli"] ? res.headers["x-amz-meta-max_cli"] : "*"
+      , wifi: res.headers["x-amz-meta-wifi"] ? res.headers["x-amz-meta-wifi"] : "1.26"
+      , etag: res.headers["etag"]
+      , version: res.headers["x-amz-meta-version"]
+    }
+
+    next(buildDetails);
+  });
+}
 
 function getBuild(url, next) {
   request.get({
@@ -134,3 +148,4 @@ exports.getBuild = getBuild;
 exports.checkBuildList = checkBuildList;
 exports.utils = utils;
 exports.isValid = isValid;
+exports.getBuildDetails = getBuildDetails;
