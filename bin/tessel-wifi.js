@@ -75,8 +75,8 @@ common.controller(false, function (err, client) {
 
   } else if (argv.disconnect) {
     client.wifiErase(function(err){
-      if (err) return console.error("Got error code:", err, "while erasing profiles");
-      console.log("Erased wifi profiles");
+      if (err) return logs.err("Got error code:", err, "while erasing profiles");
+      logs.info("Erased wifi profiles");
       client.close();
     })
   } else {
