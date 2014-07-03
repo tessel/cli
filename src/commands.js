@@ -53,6 +53,9 @@ var commands = {
   writeProcessMessage: function (client, data, callback) {
     client.postMessage(0x004d, clone.serialize(data), callback);
   },
+  writeProcessMessageRaw: function (client, data, callback) {
+    client.postMessage(0x004e, data, callback);
+  },
   requestWifiNetworksAndStatus: function (client, callback) {
     client.postMessage(0x0056, null, callback);
   },
