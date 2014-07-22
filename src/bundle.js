@@ -31,7 +31,7 @@ var path = require('path')
   }
 })();
 
-exports.bundleFiles = function (startpath, args, files, next)
+exports.bundleFiles = function (startpath, args, files, bundleopts, next)
 {
   temp.mkdir('colony', function (err, dirpath) {
     var mkdirp = require('mkdirp');
@@ -63,6 +63,9 @@ exports.bundleFiles = function (startpath, args, files, next)
       var f = _f[0], fullpath = _f[1];
 
       debug('compiling', f);
+      if (bundleopts.show  && !bundleopts.quiet) {
+        logs.info('compiling', f);
+      }
 
       try {
         var source = fs.readFileSync(fullpath, 'utf-8');
@@ -92,6 +95,9 @@ exports.bundleFiles = function (startpath, args, files, next)
         try {
           colonyCompiler.toBytecode(res, '/' + f.split(path.sep).join('/'), function (err, bytecode) {
             debug('writing', f);
+            if (bundleopts.show && !bundleopts.quiet) {
+              logs.info('writing', f);
+            }
             !err && fs.writeFileSync(fullpath, bytecode);
             next(err);
           });

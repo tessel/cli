@@ -37,6 +37,11 @@ var argv = require("nomnom")
     flag: true,
     help: '[Tessel] Hide tessel deployment messages.'
   })
+  .option('verbose', {
+    abbr: 'v',
+    flag: true,
+    help: '[Tessel] Show debug messages (such as which files are being bundled).'
+  })
   .option('messages', {
     abbr: 'm',
     flag: true,
@@ -46,6 +51,10 @@ var argv = require("nomnom")
     abbr: 'l',
     flag: true,
     help: '[Tessel] Stay connected and print logs.'
+  })
+  .option('show', {
+    flag: true,
+    help: 'Lists which files are being bundled during the push'
   })
   .option('single', {
     abbr: 's',
@@ -59,7 +68,10 @@ var argv = require("nomnom")
   })
   .parse();
 
-argv.verbose = !argv.quiet;
+if (argv.verbose && argv.quiet) {
+  argv.quiet = false;
+  logs.warn("Both --verbose and --quiet were specified. Defaulting to --verbose");
+}
 
 function usage () {
   console.error(require('nomnom').getUsage());
@@ -114,15 +126,18 @@ common.controller({stop: true}, function (err, client) {
   });
 
   function pushCode(){
-    client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || []), {
-      flash: true,
-      single: argv.single
-    }, function (err) {
+    client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || [])
+      , { flash: true 
+          , single: argv.single
+          , verbose: argv.verbose
+          , quiet : argv.quiet
+        }
+      , function (err) {
 
-      logs.info("Finished deployment");
+      if (!argv.quiet) logs.info("Finished deployment");
 
       function exit(code) {
-        logs.info("Run \"tessel logs\" or \"tessel push <script.js> -l\" to see logged output.");
+        if (!argv.quiet) logs.info("Run \"tessel logs\" or \"tessel push <script.js> -l\" to see logged output.");
         client.close(function () {
           process.exit(code || 0);
         });

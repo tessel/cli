@@ -122,16 +122,15 @@ tessel.bundleScript = function (pushpath, argv, bundleopts, next)
     next = bundleopts;
     bundleopts = {};
   }
-  var verbose = !bundleopts.quiet;
-
   var ret = analyzeScript(pushpath, bundleopts);
   if (ret.warning) {
-    verbose && logs.warn(ret.warning);
+    bundleopts.verbose && logs.warn(ret.warning);
   }
-  verbose && logs.info('Bundling directory ' + ret.pushdir + ' (~' + humanize.filesize(ret.size) + ')');
+  
+  if (!bundleopts.quiet) logs.info('Bundling directory ' + ret.pushdir );
 
   // Create archive and deploy it to tessel.
-  tessel.bundleFiles(ret.relpath, argv, ret.files, next);
+  tessel.bundleFiles(ret.relpath, argv, ret.files, bundleopts, next);
 }
 
 // client#run(pushpath, args, next(err))
