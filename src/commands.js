@@ -33,6 +33,9 @@ var commands = {
   disconnect: function (client, callback) {
     client.postMessage(0x0059, new Buffer(4), callback);
   },
+  wifiRestart: function (client, callback) {
+    client.postMessage(0x0052, null, callback);
+  },
   connect: function (client, ssid, pass, security, callback) {
     // Package Wifi arguments
     var outbuf = new Buffer(128);
@@ -43,6 +46,9 @@ var commands = {
 
     client.postMessage(0x0057, outbuf, callback);
   },
+  wifiBusy: function(client, callback){
+    client.postMessage(0x0077, null, callback);
+  }, 
   writeStdin: function (client, buffer, callback) {
     client.postMessage(0x006e, buffer, callback);
   },
@@ -106,7 +112,6 @@ prototype.initCommands = function () {
   this.on('rawMessage:0057', function (data) {
     var packet = JSON.parse(data);
     this.emit('wifi-' + packet.event, packet);
-    // console.log(packet);
   });
 
   // Wifi list.
@@ -214,16 +219,30 @@ prototype.wifiStatus = function (next) {
 }
 
 prototype.wifiErase = function (next) {
+  var self = this;
   commands.eraseWifiProfiles(this, function () {
     console.error('Erasing saved wifi profiles'.grey);
   });
 
-  this.once('wifi-profile-erase', function (data) {
+  self.once('wifi-profile-erase', function (data) {
     if (Number(data) < 0) {
       next(data);
     } else {
+      // if no error reset the wifi chip
+      self.reset
       next(null);
     }
+  });
+}
+
+prototype.wifiRestart = function(next){
+  var self = this;
+  commands.wifiRestart(this, function(){
+    console.error('Resetting wifi chip'.grey);
+  });
+
+  self.once('wifi-restart', function(packet){
+    next(null);
   });
 }
 
@@ -241,16 +260,19 @@ prototype.configureWifi = function (ssid, pass, security, opts, next) {
       self.once('wifi-disconnect', start);
       commands.disconnect(self);
     } else {
-      start();
+      // restart and try again
+      self.wifiRestart(function(){
+        start();
+      });
     }
   });
   self.checkWifi(true);
 
   function start () {
-    logs.info('Connecting to "%s" with %s security...', ssid, security);
     (function timeoutloop () {
       var checkInterval = null;
       var acquiring = false;
+      var nextCalled = false;
 
       function onAcquire (packet) {
         // Polling animation
@@ -262,15 +284,27 @@ prototype.configureWifi = function (ssid, pass, security, opts, next) {
         checkInterval = setInterval(function(){
           count++;
           if (count >= maxCount){
+            clearInterval(checkInterval);
             process.stderr.write(' timeout.\n');
             logs.info('Retrying...');
-
             cleanup();
-            setTimeout(timeoutloop, 1000);
+            timeoutloop();
+            
           } else {
             process.stderr.write('.');
           }
         }, 1000);
+      }
+
+      function goToNext(packet){
+        if(packet.event == 'disconnect' && !acquiring) {
+          return;
+        }
+
+        nextCalled = true;
+        cleanup();
+        clearInterval(checkInterval);
+        next(packet);
       }
 
       function onDHCPSuccess(packet) {
@@ -279,15 +313,8 @@ prototype.configureWifi = function (ssid, pass, security, opts, next) {
         }
 
         self.once('wifi-status', function (packet) {
-          cleanup();
-          next(packet);
+          goToNext(packet);
         })
-      }
-
-      function onError (packet) {
-        cleanup();
-
-        next(packet);
       }
 
       function cleanup () {
@@ -296,16 +323,34 @@ prototype.configureWifi = function (ssid, pass, security, opts, next) {
         }
         self.removeListener('wifi-acquire', onAcquire);
         self.removeListener('wifi-dhcp-success', onDHCPSuccess);
-        self.removeListener('wifi-disconnect', onDHCPSuccess);
-        self.removeListener('wifi-error', onError);
+        self.removeListener('wifi-dhcp-failure', goToNext);
+        // self.removeListener('wifi-disconnect', goToNext);
+        self.removeListener('wifi-error', goToNext);
       }
 
       self.once('wifi-acquire', onAcquire);
       self.once('wifi-dhcp-success', onDHCPSuccess);
-      self.once('wifi-disconnect', onDHCPSuccess);
-      self.once('wifi-error', onError);
+      self.once('wifi-dhcp-failure', goToNext);
+      // self.once('wifi-disconnect', goToNext);
+      self.once('wifi-error', goToNext);
 
-      commands.connect(self, ssid, pass, security);
+      // first check out if wifi is currently busy
+      self.once('wifi-busy', function(packet){
+        if (packet.busy) {
+          // try again
+          setTimeout(function(){
+            if (!nextCalled) {
+              cleanup();
+              logs.info("Wifi is current busy... retrying...");
+              timeoutloop();
+            }
+          }, 3000);
+        } else {
+          logs.info('Connecting to "%s" with %s security...', ssid, security);
+          commands.connect(self, ssid, pass, security);
+        }
+      });
+      commands.wifiBusy(self);
     })();
   }
 }
