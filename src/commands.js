@@ -174,8 +174,8 @@ prototype.initCommands = function () {
 prototype.enterBootloader = function (next) {
   var self = this;
   self.claim(true, function() {
-    self.log_ep.stopStream();
-    self.msg_in_ep.stopStream();
+    self.log_ep.stopPoll();
+    self.msg_in_ep.stopPoll();
     commands.enterBootloader(self, function(err) {
       if (err) return next && next(err);
       self.usb.close();
