@@ -17,6 +17,7 @@ var hardwareResolve = require('hardware-resolve')
   , envfile = require('envfile')
   , tessel = require('../')
   , logs = require('../src/logs')
+  , config = require('../src/config-file.js')
   ;
 
 // analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size, configvars }
@@ -143,7 +144,7 @@ tessel.bundleConfigVars = function(envFile, next) {
   }
 
   try {
-    globals = envfile.parseFileSync(__dirname + '/../.global_env');
+    globals = config.fileContentsSync();
   }
   catch (err) {
     console.warn("Unable to parse global config variables:", err);

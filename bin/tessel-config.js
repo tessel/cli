@@ -1,6 +1,7 @@
 var envfile = require('envfile')
   , fs = require('fs')
-  , globalConfigFile = __dirname + "/../.global_env";
+  , config = require('../src/config-file.js')
+  ;
 
 /*
  * Determines with config function should be called
@@ -27,7 +28,7 @@ var determineConfigFunction = function(command) {
  */
 var getConfigVar = function(keys) {
   // Fetch the current configuration
-  envfile.parseFile(globalConfigFile, function(err, currentSettings) {
+  config.fileContents(function(err, currentSettings) {
     if (err) {
       console.warn("Unable to parse global config file!", err);
       return;
@@ -56,7 +57,7 @@ var getConfigVar = function(keys) {
  */
 var configVarHelper = function(newSettings, action) {
    // Fetch the current configuration
-  envfile.parseFile(globalConfigFile, function(err, currentSettings) {
+  config.fileContents(function(err, currentSettings) {
     if (err) {
       console.warn("Error parsing global config file!", err);
       return;
@@ -77,7 +78,7 @@ var configVarHelper = function(newSettings, action) {
       }
 
       // Re-write the settings to the file
-      fs.writeFile(globalConfigFile, envfile.stringifySync(currentSettings), function(err) {
+      fs.writeFile(config.filePath, envfile.stringifySync(currentSettings), function(err) {
         if (err) {
           console.warn("Could not write config vars to the global file:", err);
         }

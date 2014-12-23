@@ -59,6 +59,7 @@ var builtinCommands = {
   'blink': 'blink', 'blinky': 'blink', 'blinkie': 'blink', 'blinkee': 'blink',
   'debug': 'debug',
   'check': 'check',
+  'create-config' : 'create-config',
   'config': 'config',
   'debug-stack': 'debug-stack',
   'erase': 'erase',
