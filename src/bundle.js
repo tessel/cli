@@ -44,7 +44,7 @@ function containsFile(file) {
    };
 }
 
-exports.bundleFiles = function (startpath, args, files, opts, next)
+exports.bundleFiles = function (startpath, args, files, opts, configvars, next)
 {
   if (typeof opts == 'function') {
     next = opts;
@@ -61,11 +61,22 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
       fs.writeFileSync(path.join(dirpath, 'app', filename), fs.readFileSync(files[filename], 'binary'), 'binary');
     });
 
-    var stub
-      = 'process.env.DEPLOY_IP = ' + JSON.stringify(require('my-local-ip')()) + ';\n'
+    var stub = '';
+
+    // For each of the config variables
+    for (var prop in configvars) {
+      // Add it to the process.env hashmap
+      stub += 'process.env.' + prop + '="' + configvars[prop] + '";';
+    }
+    
+    // Add the standard env variables and args
+    stub
+      += 'process.env.DEPLOY_IP = ' + JSON.stringify(require('my-local-ip')()) + ';\n'
       + 'process.env.DEPLOY_TIMESTAMP = ' + JSON.stringify(String(Date.now())) + ';\n'
       + 'process.argv = ' + JSON.stringify(args) + ';\n'
       + 'require(' + JSON.stringify('./app/' + startpath.replace('\\', '/')) + ');';
+
+      console.log('STUB', stub);
     fs.writeFileSync(path.join(dirpath, '_start.js'), stub);
 
     // Create list of (tesselpath, localfspath) files to compile.

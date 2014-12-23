@@ -19,7 +19,7 @@ var hardwareResolve = require('hardware-resolve')
   , logs = require('../src/logs')
   ;
 
-// analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size }
+// analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size, configvars }
 // Given a command-line file path, resolve whether we are bundling a file, 
 // its directory, or its ancestral node module.
 
@@ -82,7 +82,7 @@ function analyzeScript (arg, opts)
       }
     }
 
-    tessel.bundleConfigVars(pushdir);
+    ret.configvars = tessel.bundleConfigVars(pushdir);
 
     ret.pushdir = pushdir;
     ret.relpath = relpath;
@@ -153,7 +153,7 @@ tessel.bundleScript = function (pushpath, argv, bundleopts, next)
   verbose && logs.info('Bundling directory ' + ret.pushdir);
 
   // Create archive and deploy it to tessel.
-  tessel.bundleFiles(ret.relpath, argv, ret.files, bundleopts, next);
+  tessel.bundleFiles(ret.relpath, argv, ret.files, bundleopts, ret.configvars, next);
 }
 
 // client#run(pushpath, args, next(err))
