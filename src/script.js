@@ -14,6 +14,7 @@ var fs = require('fs')
 var hardwareResolve = require('hardware-resolve')
   , effess = require('effess')
   , humanize = require('humanize')
+  , envfile = require('envfile')
   , tessel = require('../')
   , logs = require('../src/logs')
   ;
@@ -81,6 +82,8 @@ function analyzeScript (arg, opts)
       }
     }
 
+    tessel.bundleConfigVars(pushdir);
+
     ret.pushdir = pushdir;
     ret.relpath = relpath;
     ret.files = files;
@@ -110,6 +113,25 @@ function analyzeScript (arg, opts)
   ret.size = sizelookup['./'] || 0;
 
   return ret;
+}
+
+tessel.bundleConfigVars = function(rootDir) {
+  // Gather the global config variables
+  var globals = envfile.parseFileSync(__dirname + '/../.global_env');
+  // Gather the local config variables
+  var locals = envfile.parseFileSync(rootDir + "/.env");
+
+  // For each global config var
+  for (var prop in globals) {
+    // If it's not already a local config var
+    if (!locals[prop]) {
+      // Add it to the locals dict
+      locals[prop] = globals[prop];
+    }
+  } 
+
+  // Return the hash map of all relevant config vars
+  return locals;
 }
 
 // tessel.bundleScript(pushpath, args, opts, next(err, tarbundle))

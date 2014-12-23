@@ -26,6 +26,7 @@
     "colorsafeconsole": "0.0.4",
     "debug": "^0.8.1",
     "effess": "~0.0.5",
+    "envfile": "^1.0.0",
     "fstream": "~0.1.25",
     "hardware-resolve": "~0.1.3",
     "humanize": "0.0.9",
