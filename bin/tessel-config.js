@@ -2,7 +2,6 @@ var envfile = require('envfile')
   , fs = require('fs')
   , config = require('../src/config-file.js')
   ;
-
 /*
  * Determines with config function should be called
  * based on the config commang
@@ -51,6 +50,30 @@ var getConfigVar = function(keys) {
 };
 
 /*
+ * A helper function for parsing the key and value of a setting.
+ */
+var parseSetting = function(setting) {
+  // Fetch the position if the k,v separator
+  var equalPos = setting.indexOf('=')
+
+  // If it doesn't exist, ge tmad
+  if (equalPos === -1) {
+    throw new Error("Invalid setting provided:" + setting + ". Must be in the form KEY=VALUE");
+  }
+
+  // The key is the first value before the '=', value is the rest
+  var key = setting.substr(0, equalPos);
+
+  if (!config.isValidKeyName(key)) {
+    throw new Error("Invalid Key name:" = key + ". Must be a valid JS variable identifier");
+  }
+
+  var value = setting.substr(equalPos+1);
+
+  return [key, value];
+}
+
+/*
  * A helper function for setting and unsetting that fetches
  * the current configuration and allows an action closure to be
  * executed with each key provided.
@@ -65,8 +88,9 @@ var configVarHelper = function(newSettings, action) {
 
     // For each new setting
     for (var setting in newSettings) {
+
       // Extract the key and value from the string
-      var kv = newSettings[setting].split('='), key = kv[0], value = kv[1];
+      var kv = parseSetting(newSettings[setting]), key = kv[0], value = kv[1];
       // Perform the selected action with the settings
       action(key, value, currentSettings);
     }
@@ -125,4 +149,9 @@ var invalidConfigCommand = function() {
 };
 
 // Call the appropriate function with the appropriate arguments
-determineConfigFunction(process.argv[2])(process.argv.slice(3));
+if (process.argv.length > 2) {
+  determineConfigFunction(process.argv[2])(process.argv.slice(3));  
+}
+
+module.exports
+module.exports.test = { parseSetting: parseSetting};

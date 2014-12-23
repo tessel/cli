@@ -18,6 +18,7 @@ var path = require('path')
   , effess = require('effess')
   , debug = require('debug')('tessel')
   , logs = require('../src/logs')
+  , config = require('../src/config-file')
   ;
 
 // We want to force node-tar to not use extended headers.
@@ -66,7 +67,7 @@ exports.bundleFiles = function (startpath, args, files, opts, configvars, next)
     // For each of the config variables
     for (var prop in configvars) {
       // Add it to the process.env hashmap
-      stub += 'process.env.' + prop + '="' + configvars[prop] + '";';
+      stub += 'process.env.' + prop + '="' + config.escapeValueQuotes(configvars[prop]) + '";';
     }
     
     // Add the standard env variables and args

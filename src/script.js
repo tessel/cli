@@ -138,6 +138,16 @@ tessel.bundleConfigVars = function(envFile, next) {
   // Will not be able to parse local variables in REPL
   try {
     locals = envfile.parseFileSync(envFile);
+
+    // For each key in the local config file
+    for (var key in locals) {
+      // Make sure the key is valud
+      if (!config.isValidKeyName(key)) {
+        // If not warn the user and skip it
+        logs.warn("Skipping invalid local config key:", key, ". It must be a valid JS identifier.");
+        delete locals[key];
+      }
+    }
   }
   catch (err) {
     locals = {};
