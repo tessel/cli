@@ -10,7 +10,7 @@ tessel.bundleFiles('index.js', [], {
    'node_modules/sample-lib/lib.js': __dirname + '/compile-exclude/node_modules/sample-lib/lib.js',
    'node_modules/sample-lib/banned/file.js': __dirname + '/compile-exclude/node_modules/sample-lib/banned/file.js',
    'node_modules/sample-lib/static/static.js': __dirname + '/compile-exclude/node_modules/sample-lib/static/static.js'
-}, {}, function (err, bundle) {
+}, {}, {},  function (err, bundle) {
    tar.Parse()
       .on('entry', function (data) {
          if (/\.js$/.test(data.path)) {
