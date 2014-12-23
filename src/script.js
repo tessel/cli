@@ -115,11 +115,26 @@ function analyzeScript (arg, opts)
   return ret;
 }
 
-tessel.bundleConfigVars = function(rootDir) {
-  // Gather the global config variables
-  var globals = envfile.parseFileSync(__dirname + '/../.global_env');
-  // Gather the local config variables
-  var locals = envfile.parseFileSync(rootDir + "/.env");
+tessel.bundleConfigVars = function(rootDir, next) {
+  var locals;
+  var globals;
+  
+  // Parse the local environment variables for this script
+  // Will not be able to parse local variables in REPL
+  try {
+    locals = envfile.parseFileSync(rootDir + "/.env");
+  }
+  catch (err) {
+    locals = {};
+  }
+
+  try {
+    globals = envfile.parseFileSync(__dirname + '/../.global_env');
+  }
+  catch (err) {
+    console.warn("Unable to parse global config variables:", err);
+    globals = {};
+  }
 
   // For each global config var
   for (var prop in globals) {
@@ -130,9 +145,8 @@ tessel.bundleConfigVars = function(rootDir) {
     }
   } 
 
-  // Return the hash map of all relevant config vars
   return locals;
-}
+};
 
 // tessel.bundleScript(pushpath, args, opts, next(err, tarbundle))
 // Bundles a script path and arguments into a packed bundle.
