@@ -82,7 +82,21 @@ function analyzeScript (arg, opts)
       }
     }
 
-    ret.configvars = tessel.bundleConfigVars(pushdir);
+    var envFile;
+    // If a custom environment file location was passed in
+    if (opts.env) {
+      // add it as a relative path from the push directory. 
+      // make sure it has a slash between the file paths
+      envFile = pushdir + (opts.env[0] === "/" ? opts.env : "/" + opts.env);
+    }
+    // If not
+    else {
+      // It's in the default location
+      envFile = pushdir + "/.env"
+    }
+
+    // Bundle up all the local and global configuration vars
+    ret.configvars = tessel.bundleConfigVars(envFile);
 
     ret.pushdir = pushdir;
     ret.relpath = relpath;
@@ -115,14 +129,14 @@ function analyzeScript (arg, opts)
   return ret;
 }
 
-tessel.bundleConfigVars = function(rootDir, next) {
+tessel.bundleConfigVars = function(envFile, next) {
   var locals;
   var globals;
   
   // Parse the local environment variables for this script
   // Will not be able to parse local variables in REPL
   try {
-    locals = envfile.parseFileSync(rootDir + "/.env");
+    locals = envfile.parseFileSync(envFile);
   }
   catch (err) {
     locals = {};
