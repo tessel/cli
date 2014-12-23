@@ -28,6 +28,12 @@ function usage () {
     "          connects to a wifi network without a password\n" + 
     "   tessel wifi -l\n" +
     "          see current wifi status\n" + 
+    "   tessel config set <CONFIG_KEY=CONFIG_VALUE>\n" +
+    "          sets a global configuration variable named CONFIG_KEY to CONFIG_VALUE\n" +
+    "   tessel config get <CONFIG_KEY=CONFIG_VALUE>\n" +
+    "          gets the value of a global configuration variable named CONFIG_KEY\n" +
+    "   tessel config unset <CONFIG_KEY=CONFIG_VALUE>\n" +
+    "          removes a global configuration variable named CONFIG_KEY\n" +
     "   tessel stop\n" +
     "          stop the current script\n" +
     "   tessel check <file>\n" + 
