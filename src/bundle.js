@@ -76,7 +76,6 @@ exports.bundleFiles = function (startpath, args, files, opts, configvars, next)
       + 'process.argv = ' + JSON.stringify(args) + ';\n'
       + 'require(' + JSON.stringify('./app/' + startpath.replace('\\', '/')) + ');';
 
-      console.log('STUB', stub);
     fs.writeFileSync(path.join(dirpath, '_start.js'), stub);
 
     // Create list of (tesselpath, localfspath) files to compile.
