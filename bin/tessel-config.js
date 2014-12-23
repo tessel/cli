@@ -8,13 +8,13 @@ var envfile = require('envfile')
  * based on the config commang
  */
 var determineConfigFunction = function(command) {
-  if (command.localeCompare("get") === 0) {
+  if (command === "get") {
     return getConfigVar;
   }
-  else if (command.localeCompare("set") === 0) {
+  else if (command === "set") {
     return setConfigVar;
   }
-  else if (command.localeCompare("unset") === 0) {
+  else if (command === "unset") {
     return unsetConfigVar;
   }
   else {
