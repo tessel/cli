@@ -11,10 +11,9 @@
 // tessel blink
 // Whoever blinks first loses.
 
-var path = require('path')
-
-var common = require('../src/cli')
-var logs = require('../src/logs')
+var path = require('path'),
+	common = require('../src/cli'),
+	logs = require('../src/logs');
 
 // Setup cli.
 common.basic();

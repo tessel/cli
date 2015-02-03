@@ -8,16 +8,15 @@
 // except according to those terms.
 
 // Add command helpers to client.
-var zlib = require('zlib');
-var path = require('path');
-var fs = require('fs');
-var stream = require('stream');
-var clone = require('structured-clone')
-  , logs = require('../src/logs')
-  , humanize = require('humanize')
-  ;
+var zlib = require('zlib'),
+  path = require('path'),
+  fs = require('fs'),
+  stream = require('stream'),
+  clone = require('structured-clone'),
+  logs = require('../src/logs'),
+  humanize = require('humanize'),
+  tessel = require('./');
 
-var tessel = require('./');
 var prototype = tessel.Tessel.prototype;
 
 /**

@@ -8,13 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var tessel_dfu = require('../dfu/tessel-dfu')
-  , fs = require('fs')
-  , path = require('path')
-  , logs = require('../src/logs')
-  ;
-
-var common = require('../src/cli');
+var tessel_dfu = require('../dfu/tessel-dfu'),
+  fs = require('fs'),
+  path = require('path'),
+  logs = require('../src/logs'),
+  common = require('../src/cli');
 
 // Setup cli.
 common.basic();

@@ -8,12 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var fs = require('fs')
-  , path = require('path')
-  , logs = require('../src/logs')
-  ;
+var fs = require('fs'),
+  path = require('path'),
+  logs = require('../src/logs'),
+  common = require('../src/cli');
 
-var common = require('../src/cli')
 var erasePath = path.join(__dirname, "tessel-erase.bin");
 
 // Setup cli.
@@ -28,18 +27,18 @@ var argv = require("nomnom")
     hidden: true,
   })
   .parse();
-  
+
 common.controller({ stop: true, appMode: false }, function (err, client) {
   if (argv.force) {
     logs.info("--force is no longer necessary.")
   }
-  
+
   if (client.mode === 'app') {
     client.erase(function () {
       logs.info('Attempting to erase Tessel filesystem.');
       logs.info("If erasing failed, press the Reset button while holding down the Config button, then try again");
       client.close();
-    }); 
+    });
   } else if (client.mode === 'boot') {
     client.runRam(fs.readFileSync(erasePath), function() {
       logs.info('Tessel filesystem erased.');

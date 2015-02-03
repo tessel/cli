@@ -7,6 +7,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var logs = require('../src/logs')
+var logs = require('../src/logs');
 
-logs.err('tessel verbose is removed. use "tessel listen --all" instead.')
+logs.err('tessel verbose is removed. use "tessel listen --all" instead.');

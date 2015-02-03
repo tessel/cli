@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var common = require('../src/cli')
+var common = require('../src/cli');
 
 // Setup cli.
 common.basic();

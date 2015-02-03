@@ -8,11 +8,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var common = require('../src/cli')
-  , colors = require('colors')
-  , util = require('util')
-  , logs = require('../src/logs')
-  ;
+var common = require('../src/cli'),
+  colors = require('colors'),
+  util = require('util'),
+  logs = require('../src/logs');
 
 // Setup cli.
 common.basic();

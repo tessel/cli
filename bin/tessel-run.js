@@ -8,20 +8,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var path = require('path')
-
-var common = require('../src/cli')
-  , keypress = require('keypress')
-  , read = require('read')
-  , colors = require('colors')
-  , builds = require('../src/builds')
-  , util = require('util')
-  , logs = require('../src/logs')
-  , repl = require('repl')
-  ;
-
-var colonyCompiler = require('colony-compiler')
-var fs = require('fs')
+var path = require('path'),
+  common = require('../src/cli'),
+  keypress = require('keypress'),
+  read = require('read'),
+  colors = require('colors'),
+  builds = require('../src/builds'),
+  util = require('util'),
+  logs = require('../src/logs'),
+  repl = require('repl'),
+  colonyCompiler = require('colony-compiler'),
+  fs = require('fs');
 
 // Setup cli.
 common.basic();

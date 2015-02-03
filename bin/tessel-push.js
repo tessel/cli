@@ -8,12 +8,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var colors = require('colors')
-  , builds = require('../src/builds')
-  , logs = require('../src/logs')
-  ;
-
-var common = require('../src/cli');
+var colors = require('colors'),
+  builds = require('../src/builds'),
+  logs = require('../src/logs'),
+  common = require('../src/cli');
 
 // Setup cli.
 common.basic();
@@ -76,7 +74,7 @@ common.controller({stop: true}, function (err, client) {
   client.listen(true, [10, 11, 12, 13, 20, 21, 22])
   client.on('error', function (err) {
     if (err.code == 'ENOENT') {
-      logs.err('Error: Cannot connect to Tessel locally.')
+      logs.err('Error: Cannot connect to Tessel locally.');
     } else {
       console.error(err);
     }
@@ -115,7 +113,7 @@ common.controller({stop: true}, function (err, client) {
       // show warning
       logs.warn("There is a newer version of firmware available. Use \"tessel update\" to update to the newest version");
     }
-    
+
     pushCode();
   });
 

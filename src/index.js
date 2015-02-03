@@ -7,8 +7,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var tessel_usb = require('./tessel_usb');
-var bundle = require('./bundle');
+var tessel_usb = require('./tessel_usb'),
+  bundle = require('./bundle');
 
 exports.Tessel = tessel_usb.Tessel;
 exports.findTessel = tessel_usb.findTessel;

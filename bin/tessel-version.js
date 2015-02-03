@@ -8,10 +8,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var common = require('../src/cli')
-  , logs = require('../src/logs')
-  , builds = require('../src/builds')
-  ;
+var common = require('../src/cli'),
+  logs = require('../src/logs'),
+  builds = require('../src/builds');
+  
 // Setup cli.
 common.basic();
 
@@ -63,7 +63,7 @@ if (argv.board){
           process.exit(0);
         });
       });
-      
+
     });
   });
 } else {
@@ -73,4 +73,3 @@ if (argv.board){
     logs.err('version unknown');
   }
 }
-

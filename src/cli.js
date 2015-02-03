@@ -7,12 +7,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var fs = require('fs')
-  , path = require('path')
-  , logs = require('../src/logs')
-  ;
-
-var tessel = require('./')
+var fs = require('fs'),
+  path = require('path'),
+  logs = require('../src/logs'),
+  tessel = require('./');
 
 
 /**
