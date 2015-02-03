@@ -11,10 +11,9 @@
 // tessel check
 // Dumps a binary package.
 
-var fs = require('fs')
-  , path = require('path')
-
-var common = require('../src/cli')
+var fs = require('fs'),
+  path = require('path'),
+  common = require('../src/cli');
 
 // Setup cli.
 common.basic();

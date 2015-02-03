@@ -8,11 +8,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var fs = require('fs');
-var child_process = require('child_process');
-var common = require('../src/cli')
-  , logs = require('../src/logs')
-  ;
+var fs = require('fs'),
+  child_process = require('child_process'),
+  common = require('../src/cli'),
+  logs = require('../src/logs');
 
 // Setup cli.
 common.basic();
@@ -42,10 +41,9 @@ if (process.platform === 'linux') {
       logs.err("reloading udev.");
       process.exit(code);
     } else {
-      logs.info("Driver installation complete. Unplug and re-plug Tessel to begin using it.")
+      logs.info("Driver installation complete. Unplug and re-plug Tessel to begin using it.");
     }
   });
 } else {
   logs.info("No driver installation necessary.");
 }
-

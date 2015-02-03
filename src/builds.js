@@ -7,11 +7,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var request = require('request')
-  , os = require('os')
-  , path = require('path')
-  , fs = require('fs')
-  ;
+var request = require('request'),
+  os = require('os'),
+  path = require('path'),
+  fs = require('fs');
 
 var utils = {
   "buildsPath": "https://builds.tessel.io/",

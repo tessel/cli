@@ -13,5 +13,5 @@
 
 // Launch subprocess as though it were ourself
 var subprocess = './tessel-run.js';
-process.argv.splice(1, 2, subprocess, '-i')
+process.argv.splice(1, 2, subprocess, '-i');
 require(subprocess);

@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var os = require("os"), 
+var os = require("os"),
   pjson = require("../package.json"),
   common = require('../src/cli'),
   temp = require('temp'),
@@ -18,8 +18,7 @@ var os = require("os"),
   fs = require('fs'),
   colors = require('colors'),
   builds = require('../src/builds'),
-  logs = require('../src/logs')
-  ;
+  logs = require('../src/logs');
 
 temp.track();
 
@@ -66,7 +65,7 @@ function stop(client, logId){
 
 function postToWeb(path, data, next){
   request({uri: builds.utils.debugPath+path, method: 'post', json: true, headers:{
-    'Content-Type': 'application/json', 
+    'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(JSON.stringify(data))
     }, body: data}
   , function(error, res, body){
@@ -74,25 +73,25 @@ function postToWeb(path, data, next){
       logs.err("There was an issue uploading the debug files.", body);
       logs.info("Trying with path", path, "with data", data);
       process.exit();
-    } 
+    }
     next && next(body);
   });
 }
 
 function initDebug(serial, wifi, info, next){
-  postToWeb('/new', { 
+  postToWeb('/new', {
     serial: serial,
-    firmware: info.firmware_git, 
+    firmware: info.firmware_git,
     runtime: info.runtime_git,
     firmware_date: info.date,
-    firmware_time: info.time, 
-    wifi: wifi, 
+    firmware_time: info.time,
+    wifi: wifi,
     hostType: os.type(),
     platform: os.platform(),
     arch: os.arch(),
     release: os.release(),
     node: process.version,
-    cli: pjson.version }, 
+    cli: pjson.version },
     function(res){
       if (!res || res == false) return logs.err("Could not communicate with host debug server", res);
       // res = JSON.parse(res);
@@ -105,9 +104,9 @@ function Logger(id, urls, name, client) {
   this.id = id;
   this.client = client;
   this.files = [];
-  this.path = temp.mkdirSync(name); 
+  this.path = temp.mkdirSync(name);
   this.urls = urls;
-  
+
   this.logPaths = {};
   this.logPaths[name] = path.join(this.path, name);
 
@@ -206,7 +205,7 @@ common.controller({stop: true}, function (err, client) {
               setTimeout(function(){
                 userScript(init.id, client, init.urls);
               }, 1000);
-              
+
             } else {
               logs.info("No userscript detected. In order to run a userscript, specify `tessel debug <script.js>`")
               stop(client, init.id);

@@ -7,19 +7,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var fs = require('fs')
-  , path = require('path')
-  ;
+var fs = require('fs'),
+  path = require('path');
 
-var hardwareResolve = require('hardware-resolve')
-  , effess = require('effess')
-  , humanize = require('humanize')
-  , tessel = require('../')
-  , logs = require('../src/logs')
-  ;
+var hardwareResolve = require('hardware-resolve'),
+  effess = require('effess'),
+  humanize = require('humanize'),
+  tessel = require('../'),
+  logs = require('../src/logs');
 
 // analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size }
-// Given a command-line file path, resolve whether we are bundling a file, 
+// Given a command-line file path, resolve whether we are bundling a file,
 // its directory, or its ancestral node module.
 
 function analyzeScript (arg, opts)

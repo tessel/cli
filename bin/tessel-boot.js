@@ -8,18 +8,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var fs = require('fs')
-  , logs = require('../src/logs')
-  ;
-
-var common = require('../src/cli')
+var fs = require('fs'),
+  logs = require('../src/logs'),
+  common = require('../src/cli');
 
 // Setup cli.
 common.basic();
 
 var fname = process.argv[2];
 var image = fs.readFileSync(fname);
-  
+
 common.controller({ stop: true, appMode: false }, function (err, client) {
   if (err) return logs.err(err);
   client.enterBootloader(function(err, bl) {

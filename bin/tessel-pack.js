@@ -8,15 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var common = require('../src/cli')
-  , colors = require('colors')
-  , tessel = require('../')
-  , path = require('path')
-  , fs = require('fs')
-  , util = require('util')
-  , humanize = require('humanize')
-  , logs = require('../src/logs')
-  ;
+var common = require('../src/cli'),
+  colors = require('colors'),
+  tessel = require('../'),
+  path = require('path'),
+  fs = require('fs'),
+  util = require('util'),
+  humanize = require('humanize'),
+  logs = require('../src/logs');
 
 // Setup cli.
 common.basic();
@@ -66,7 +65,7 @@ tessel.bundleScript(argv.script, argv.args, {
   logs.info('wrote %s bytes', humanize.filesize(tarbundle.length))
   if (!argv.dry) {
     var file = 'tessel-' + path.basename(process.cwd()) + '.tar';
-    logs.info(file)
+    logs.info(file);
     fs.writeFileSync(file, tarbundle);
   }
 })

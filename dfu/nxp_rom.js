@@ -9,9 +9,9 @@
 
 // Loads and executes the `otp` tool using the NXP ROM to install the Tessel bootloader
 
-var fs = require('fs')
-var usb = require('usb');
-var DFU = require('./dfu');
+var fs = require('fs'),
+  usb = require('usb'),
+  DFU = require('./dfu');
 
 var NXP_ROM_VID = 0x1fc9;
 var NXP_ROM_PID = 0x000c;

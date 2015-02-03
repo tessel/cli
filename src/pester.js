@@ -1,9 +1,8 @@
 // Ensure a minimum version number for Node.
 
-var colors = require('colors')
-  , semver = require('semver')
-  , logs = require('../src/logs')
-  ;
+var colors = require('colors'),
+  semver = require('semver'),
+  logs = require('../src/logs');
 
 if ('node' in process.versions) {
   var expecting = require('../package.json').engines.node;

@@ -8,18 +8,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-var os = require("os")
-  , temp = require('temp')
-  , path = require('path')
-  , request = require('request')
-  , fs = require('fs')
-  , colors = require('colors')
-  , builds = require('../src/builds')
-  , logs = require('../src/logs')
-  , semver = require('semver')
-  ;
-
-var common = require('../src/cli');
+var os = require("os"),
+  temp = require('temp'),
+  path = require('path'),
+  request = require('request'),
+  fs = require('fs'),
+  colors = require('colors'),
+  builds = require('../src/builds'),
+  logs = require('../src/logs'),
+  semver = require('semver'),
+  common = require('../src/cli');
+  
 common.basic();
 
 // Command-line arguments
@@ -71,7 +70,7 @@ function fetchBuild(path, next) {
     logs.info('Using local file', path);
     fs.readFile(path, check);
   }
-  
+
   function check(err, buf) {
     if (err) return next(err);
     if (builds.isValid(buf)) {
@@ -87,7 +86,7 @@ function applyBuild(url, client, next){
   fetchBuild(url, function(err, buff){
     if (err) return next(err);
     logs.info("Updating firmware... please wait. Tessel will reset itself after the update");
-    
+
     client.enterBootloader(function(err, bl) {
       if (err) return next(err);
       bl.writeFlash(buff, function() {
@@ -106,7 +105,7 @@ function applyRam(url, client, next){
 
     client.enterBootloader(function(err, bl) {
       if (err) return next(err);
-      
+
       bl.runRam(buff, function (e) {
         logs.info("Wifi patch uploaded... waiting for it to apply (10s)");
 
@@ -133,7 +132,7 @@ function isUrl (str){
 function update(client) {
   if (argv._.length > 0) { // The user requested a specific file
     applyBuild(argv._[0], client, done);
-  } else if (argv.build) { 
+  } else if (argv.build) {
     // rebuild url and download by build number
     applyBuild(builds.utils.buildsPath+"firmware/tessel-firmware-"+argv.build+".bin", client, done);
   } else if (argv.wifi) {
@@ -153,7 +152,7 @@ function update(client) {
         if (client.mode == 'app') {
           client.wifiVer( function(err, wifiVer) {
             if (err) return done(err);
-              
+
             if (wifiVer === '0.0') {
               logs.err("Error retrieving WiFi version");
               step(null, client);
@@ -168,12 +167,12 @@ function update(client) {
           logs.info("Already in bootloader mode: could not check WiFi version.")
           step(null, client);
         }
-        
+
         function step(err, newClient) {
           if (err) return done(err);
           applyBuild(builds.utils.buildsPath+allBuilds[0].url, newClient, done);
         }
-        
+
       } else {
         // already at latest build
         logs.info("Tessel is already on the latest firmware build. You can force an update with \"tessel update --force\"");
@@ -240,4 +239,3 @@ if (argv.list){
     update(client);
   });
 }
-

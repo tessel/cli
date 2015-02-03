@@ -20,7 +20,7 @@ var tessel = require('tessel');
 ### Module
 This module creates a single-threaded local server to which multiple processes can connect to a single Tessel over USB, as well as a `TesselClient` object that acts as a connection to the Tessel.
 
-```
+```js
 var tessel = require('tessel-client');
 ```
 
