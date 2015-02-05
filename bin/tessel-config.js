@@ -17,7 +17,7 @@ var determineConfigFunction = function(command) {
     return unsetConfigVar;
   }
   else {
-    return invalidConfigCommand;
+    return null;
   }
 };
 
@@ -56,7 +56,7 @@ var parseSetting = function(setting) {
   // Fetch the position if the k,v separator
   var equalPos = setting.indexOf('=')
 
-  // If it doesn't exist, ge tmad
+  // If it doesn't exist, get mad
   if (equalPos === -1) {
     throw new Error("Invalid setting provided:" + setting + ". Must be in the form KEY=VALUE");
   }
@@ -78,7 +78,7 @@ var parseSetting = function(setting) {
  * the current configuration and allows an action closure to be
  * executed with each key provided.
  */
-var configVarHelper = function(newSettings, action) {
+var configVarHelper = function(newSettings, action, next) {
    // Fetch the current configuration
   config.fileContents(function(err, currentSettings) {
     if (err) {
@@ -107,7 +107,7 @@ var configVarHelper = function(newSettings, action) {
           console.warn("Could not write config vars to the global file:", err);
         }
         else {
-          console.warn("Global config variables saved!");
+          next && next();
         }
       });
     })
@@ -123,6 +123,8 @@ var setConfigVar = function(newSettings) {
     // Set the key in the current settings and set the value
     console.info("Adding", key + "=" + value, "...");
     settings[key] = value;
+  }, function() {
+    console.warn("Global config variables saved!");
   });
 };
 
@@ -131,12 +133,20 @@ var setConfigVar = function(newSettings) {
  * from the global config file
  */
 var unsetConfigVar = function(delSettings) {
+  // In order to avoid an error being thrown within the
+  // helper func, add an equal sign and empty value
+  var original = delSettings[0];
+  if (delSettings[0].indexOf('=') == -1) delSettings[0]+="=''"
+
   configVarHelper(delSettings, function(key, value, settings) {
     // If the setting exists
     if (settings[key]) {
       console.warn("Removing config var:", key);
       // Delete it
       delete settings[key];
+    }
+    else {
+      console.warn("Setting", original, "does not exist...");
     }
   });
 };
@@ -150,8 +160,19 @@ var invalidConfigCommand = function() {
 
 // Call the appropriate function with the appropriate arguments
 if (process.argv.length > 2) {
-  determineConfigFunction(process.argv[2])(process.argv.slice(3));  
+  var cmd = process.argv[2];
+  var fn = determineConfigFunction(cmd);
+  var args = process.argv.slice(3);
+
+  if (!fn) {
+    invalidConfigCommand();
+  }
+  else if (!args.length) {
+    throw new Error("You must supply arguments for the command: " + cmd);
+  }
+  else {
+    fn(args);
+  }
 }
 
-module.exports
 module.exports.test = { parseSetting: parseSetting};
