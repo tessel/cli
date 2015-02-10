@@ -32,8 +32,6 @@ if (usb_debug) {
   usb.setDebugLevel(usb_debug);
 }
 
-var isWindows = /^win/.test(process.platform);
-
 // Common base support for bootloader and app mode
 function TesselBase() {}
 util.inherits(TesselBase, EventEmitter);
@@ -60,11 +58,7 @@ TesselBase.prototype.init = function init(next) {
 TesselBase.prototype.reFind = function reFind(desiredMode, next) {
   var self = this;
   var retrycount = 16;
-  
-  if (isWindows) {
-    self.usb.__destroy();
-  }
-  
+
   function retry (error) {
     deviceBySerial(self.serialNumber, function(err, device) {
       // Ignore errors until timeout (another device may fail, but that doesn't
@@ -72,9 +66,6 @@ TesselBase.prototype.reFind = function reFind(desiredMode, next) {
       if (device && device.mode === desiredMode) {
         return next(device.initError, device);
       } else if (--retrycount > 0) {
-        if (device && isWindows) {
-          device.usb.__destroy();
-        }
         return setTimeout(retry, 500);
       } else {
         var msg;
@@ -215,7 +206,7 @@ Tessel.prototype.listen = function listen(deprecated, levels) {
 
 Tessel.prototype._receiveLogs = function _receiveLogs() {
   var self = this;
-  self.log_ep.startStream(4, 4096);
+  self.log_ep.startPoll(4, 4096);
   self.log_ep.on('data', function(data) {
     var pos = 0;
     while (pos < data.length) {
@@ -271,7 +262,7 @@ Tessel.prototype._receiveMessages = function _receiveMessages() {
   var self = this;
 
   var transferSize = 4096;
-  self.msg_in_ep.startStream(2, transferSize);
+  self.msg_in_ep.startPoll(2, transferSize);
 
   var buffers = [];
   self.msg_in_ep.on('data', function(data) {
@@ -388,10 +379,6 @@ function deviceBySerial(serial, next) {
     for (var i=0; i<devices.length; i++) {
       if (!serial || serial === devices[i].serialNumber) {
         return next(devices[i].initError, devices[i])
-      } else {
-        if (isWindows) {
-          devices[i].usb.__destroy();
-        }
       }
     }
     if (err) return next(err);
@@ -406,9 +393,6 @@ exports.listDevices = function listDevices(next) {
         return new TesselBoot(dev);
       } else {
         return new Tessel(dev);
-      }
-      if (isWindows) {
-        dev.__destroy();
       }
     }
   }).filter(function(x) {return x});
