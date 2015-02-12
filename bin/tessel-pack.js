@@ -46,12 +46,6 @@ var argv = require("nomnom")
     flag: true,
     help: 'Show usage for tessel pack'
   })
-  .option('bytecode', {
-    abbr: 'h',
-    flag: true,
-    default: true,
-    help: 'Precompile JS into bytecode'
-  })
   .parse();
 
 function usage () {
@@ -61,7 +55,6 @@ function usage () {
 
 tessel.bundleScript(argv.script, argv.args, {
   quiet: true,
-  compileBytecode: argv.bytecode,
 }, function (err, tarbundle) {
   logs.info('wrote %s bytes', humanize.filesize(tarbundle.length))
   if (!argv.dry) {

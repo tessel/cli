@@ -147,10 +147,6 @@ tessel.Tessel.prototype.run = function (pushpath, argv, bundleopts, next)
   }
   var verbose = !bundleopts.quiet;
 
-  if (!this._supportsOldBytecode()) {
-    bundleopts.compileBytecode = false;
-  }
-
   // Bundle code based on file path.
   tessel.bundleScript(pushpath, argv, bundleopts, function (err, tarbundle) {
     verbose && logs.info('Deploying bundle (' + humanize.filesize(tarbundle.length) + ')...');

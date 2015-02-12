@@ -1,7 +1,7 @@
 var tessel = require('..');
 var tar = require('tar');
 
-console.log('1..7');
+console.log('1..6');
 tessel.bundleFiles('index.js', [], {
    'index.js': __dirname + '/compile-exclude/index.js',
    'static/banned.js': __dirname + '/compile-exclude/static/banned.js',
@@ -15,11 +15,11 @@ tessel.bundleFiles('index.js', [], {
       .on('entry', function (data) {
          if (/\.js$/.test(data.path)) {
             if (data.path.indexOf('banned') !== -1) {
-               data.on('data', function (chunk) {
+               data.once('data', function (chunk) {
                   console.log(String(chunk) == "'this file is not compiled';" ? 'ok' : ('nok - ' + data.path));
                })
             } else {
-               data.on('data', function (chunk) {
+               data.once('data', function (chunk) {
                   console.log(String(chunk).substr(0, 7) == "console" ? ('nok - ' + data.path) : 'ok');
                })
             }
