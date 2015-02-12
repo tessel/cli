@@ -80,12 +80,6 @@ var argv = require("nomnom")
     flag: true,
     help: 'Show usage for tessel node'
   })
-  .option('bytecode', {
-    abbr: 'h',
-    flag: true,
-    default: true,
-    help: 'Precompile JS into bytecode'
-  })
   .parse();
 
 argv.verbose = !argv.quiet;
@@ -192,7 +186,6 @@ common.controller({stop: true}, function (err, client) {
   function pushCode(){
     client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || []), {
       single: argv.single,
-      compileBytecode: argv.bytecode,
     }, function () {
       // script-start emitted.
       logs.info('Running script...');

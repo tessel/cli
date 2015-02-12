@@ -99,8 +99,6 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
       }
     });
 
-    var compileBytecode = opts.compileBytecode == null ? true : !!opts.compileBytecode;
-
     // compile with compile_lua
     async.each(docompile, function (_f, next) {
       var f = _f[0], fullpath = _f[1];
@@ -110,7 +108,7 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
       try {
         var source = fs.readFileSync(fullpath, 'utf-8');
         var res = colonyCompiler.colonize(source, {
-          embedLineNumbers: !compileBytecode
+          embedLineNumbers: true
         });
       } catch (e) {
         if (!(e instanceof SyntaxError)) {
@@ -128,30 +126,12 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
         // Files with syntax errors can't be compiled.
         // We can pretend they were thrown by our parser though, at runtime.
         var res = colonyCompiler.colonize('throw new SyntaxError(' + JSON.stringify(message) + ')', {
-          embedLineNumbers: !compileBytecode
+          embedLineNumbers: true
         })
       }
 
-      if (!compileBytecode) {
-        fs.writeFileSync(fullpath, res.source);
-        next(null);
-      } else {
-        try {
-          colonyCompiler.toBytecode(res, '/' + f.split(path.sep).join('/'), function (err, bytecode) {
-            debug('writing', f);
-            !err && fs.writeFileSync(fullpath, bytecode);
-            next(err);
-          });
-        } catch (e) {
-          logs.err('Compilation process failed for the following file:');
-          logs.err(f.replace(/^[^/]+/, '.'));
-          logs.err('This is a compilation bug! Please file an issue at');
-          logs.err('https://github.com/tessel/beta/issues with this text');
-          logs.err('and a copy of the file that failed to compile.');
-          process.exit(1);
-        }
-      }
-
+      fs.writeFileSync(fullpath, res.source);
+      next(null);
     }, function (err) {
       exports.tarCode(dirpath, '', next);
     });

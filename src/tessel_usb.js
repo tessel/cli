@@ -338,10 +338,6 @@ Tessel.prototype.wifiVer = function (next) {
   });
 }
 
-Tessel.prototype._supportsOldBytecode = function () {
-  return !('runtime_version' in this.version && semver.satisfies(this.version.runtime_version, '>= 1.0.0'));
-};
-
 exports.findTessel = function findTessel(opts, next) {
   if (opts.stop   === undefined) opts.stop = false;
   if (opts.serial === undefined) opts.serial = null;
