@@ -65,7 +65,7 @@ var parseSetting = function(setting) {
   var key = setting.substr(0, equalPos);
 
   if (!config.isValidKeyName(key)) {
-    throw new Error("Invalid Key name:" = key + ". Must be a valid JS variable identifier");
+    throw new Error("Invalid Key name:" + "=" + key + ". Must be a valid JS variable identifier");
   }
 
   var value = setting.substr(equalPos+1);
