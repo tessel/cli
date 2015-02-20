@@ -50,8 +50,8 @@ Interactive menu for selecting a Tessel to connect to. Will continue to poll unt
 &#x20;<a href="#api-tessel-acquire-path-callback-err-client-" name="api-tessel-acquire-path-callback-err-client-">#</a> tessel<b>.acquire</b>( [path, ], callback(err, client) )  
 Acquires a Tessel client, either interactively (via `selectModem`) or directly given the supplied `path`. The callback is passed a `TesselClient` object.
 
-&#x20;<a href="#api-tessel-bundleFiles-relpath-args-files-callback-err-bundle-" name="api-tessel-bundleFiles-relpath-args-files-callback-err-bundle-">#</a> tessel<b>.bundleFiles</b>( relpath, args, files, callback(err, bundle) )  
-`relpath` is the starting path of the application relative to root. `args` is the `process.argv` array. `files` is a map of tessel filesystem paths to local filesystem paths from the computer. This function returns to the callback with a bundle that can be deployed to Tessel.
+&#x20;<a href="#api-tessel-bundleFiles-relpath-args-files-configvars-callback-err-bundle-" name="api-tessel-bundleFiles-relpath-args-files-configvars-callback-err-bundle-">#</a> tessel<b>.bundleFiles</b>( relpath, args, files, callback(err, bundle) )  
+`relpath` is the starting path of the application relative to root. `args` is the `process.argv` array. `files` is a map of tessel filesystem paths to local filesystem paths from the computer. `configvars` is a map of environment variables to run with the script. They can be accessed within the script as `process.env.VAR_NAME`. This function returns to the callback with a bundle that can be deployed to Tessel.
 
 ### `TesselClient` object
 Created by `tessel.connect`.

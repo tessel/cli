@@ -14,11 +14,13 @@ var fs = require('fs')
 var hardwareResolve = require('hardware-resolve')
   , effess = require('effess')
   , humanize = require('humanize')
+  , envfile = require('envfile')
   , tessel = require('../')
   , logs = require('../src/logs')
+  , config = require('../src/config-file.js')
   ;
 
-// analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size }
+// analyzeScript (string arg, { verbose, single }) -> { pushdir, relpath, files, size, configvars }
 // Given a command-line file path, resolve whether we are bundling a file, 
 // its directory, or its ancestral node module.
 
@@ -81,6 +83,22 @@ function analyzeScript (arg, opts)
       }
     }
 
+    var envFile;
+    // If a custom environment file location was passed in
+    if (opts.env) {
+      // add it as a relative path from the push directory. 
+      // make sure it has a slash between the file paths
+      envFile = pushdir + (opts.env[0] === "/" ? opts.env : "/" + opts.env);
+    }
+    // If not
+    else {
+      // It's in the default location
+      envFile = pushdir + "/.env"
+    }
+
+    // Bundle up all the local and global configuration vars
+    ret.configvars = tessel.bundleConfigVars(envFile);
+
     ret.pushdir = pushdir;
     ret.relpath = relpath;
     ret.files = files;
@@ -112,6 +130,49 @@ function analyzeScript (arg, opts)
   return ret;
 }
 
+tessel.bundleConfigVars = function(envFile, next) {
+  var locals;
+  var globals;
+  
+  // Parse the local environment variables for this script
+  // Will not be able to parse local variables in REPL
+  try {
+    locals = envfile.parseFileSync(envFile);
+
+    // For each key in the local config file
+    for (var key in locals) {
+      // Make sure the key is valud
+      if (!config.isValidKeyName(key)) {
+        // If not warn the user and skip it
+        logs.warn("Skipping invalid local config key:", key, ". It must be a valid JS identifier.");
+        delete locals[key];
+      }
+    }
+  }
+  catch (err) {
+    locals = {};
+  }
+
+  try {
+    globals = config.fileContentsSync();
+  }
+  catch (err) {
+    console.warn("Unable to parse global config variables:", err);
+    globals = {};
+  }
+
+  // For each global config var
+  for (var prop in globals) {
+    // If it's not already a local config var
+    if (!locals[prop]) {
+      // Add it to the locals dict
+      locals[prop] = globals[prop];
+    }
+  } 
+
+  return locals;
+};
+
 // tessel.bundleScript(pushpath, args, opts, next(err, tarbundle))
 // Bundles a script path and arguments into a packed bundle.
 
@@ -131,7 +192,7 @@ tessel.bundleScript = function (pushpath, argv, bundleopts, next)
   verbose && logs.info('Bundling directory ' + ret.pushdir);
 
   // Create archive and deploy it to tessel.
-  tessel.bundleFiles(ret.relpath, argv, ret.files, bundleopts, next);
+  tessel.bundleFiles(ret.relpath, argv, ret.files, bundleopts, ret.configvars, next);
 }
 
 // client#run(pushpath, args, next(err))

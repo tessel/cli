@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "MOCK_USB=1 tap test/*.js test/badserver/test.js",
-    "postinstall": "tessel install-drivers || true"
+    "postinstall": "tessel install-drivers || true; tessel create-config;"
   },
   "bin": {
     "tessel": "./bin/tessel.js"
@@ -26,6 +26,7 @@
     "colorsafeconsole": "0.0.4",
     "debug": "^0.8.1",
     "effess": "~0.0.5",
+    "envfile": "^1.0.0",
     "fstream": "~0.1.25",
     "hardware-resolve": "~0.1.3",
     "humanize": "0.0.9",
@@ -33,6 +34,9 @@
     "my-local-ip": "~1.0.0",
     "nomnom": "~1.6.2",
     "request": "~2.47.0",
+    "platform-tool": "^0.2.2",
+    "read": "^1.0.5",
+    "request": "~2.33.0",
     "semver": "^2.3.0",
     "structured-clone": "~0.2.2",
     "tar": "~0.1.18",
