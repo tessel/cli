@@ -1,50 +1,10 @@
-// Fake tessel implementation
-
-var colors = require('colors');
-
-(function fakeTessel() {
-    
-    var leds = [
-        { color: "bgGreen", name: "LED1" },
-        { color: "bgBlue", name: "LED2" },
-        { color: "bgRed", name: "Error"},
-        { color: "bgYellow", name: "Conn"}
-    ];
-    
-    function led(index, state) {
-        var selected = leds[index];
-        return colors[(state ? selected.color : "black")].white(selected.name); 
-    }
-    
-    function log(what) {
-        console.info(colors.cyan("T | " + what));   
-    }
-    
-    var pin = function(ledIndex) {
-        
-        var ledState = false;
-        
-        return { 
-            'output': function(value) {
-                ledState = value; 
-                log("Outputted " + value + " on " + led(ledIndex, value));
-                return this; 
-            },
-            'toggle': function() {
-                ledState = !ledState;
-                log("Toggled " + led(ledIndex, ledState));
-            } 
-        }
-    }; 
-    
-    exports.led = [
-           pin(0),
-           pin(1),
-           pin(2),
-           pin(3),
-        ];    
-        
-                
+/* tessel fake
+ * - Execute the passed script as if it was being processed by the hardware.
+ * Requires consumer to also use module tessel-fakes (https://www.npmjs.com/package/tessel-fakes) 
+ * and to require this module, rather than tessel when running fakes
+ * (Alternately: Rename the tessel-fakes folder after npm install...)
+ */
+(function tesselFake() {
     var path = require('path'), 
     common = require('../src/cli'), 
     colors = require('colors'); 
