@@ -38,7 +38,6 @@ var argv = require("nomnom")
   })
   .option('security', {
     abbr: 's',
-    default: 'wpa2',
     help: '[Tessel] Security type of the network, one of (wpa2|wpa|wep). Omit for unsecured networks.'
   })
   .option('timeout', {
@@ -112,7 +111,16 @@ common.controller({stop: false}, function (err, client) {
         pass = new Buffer(String(pass));
       }
 
-      var security = new Buffer((String(argv.security) || (pass ? 'wpa2' : 'unsecure')).toLowerCase());
+      var security;
+      if (argv.security) {
+        security = new Buffer(String(argv.security).toLowerCase());
+      }
+      else if (pass.length) {
+        security = new Buffer(String('wpa2'));
+      }
+      else {
+        security = new Buffer(0);
+      }
 
       client.configureWifi(ssid, pass, security, {
         timeout: argv.timeout

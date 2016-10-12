@@ -279,7 +279,7 @@ prototype.configureWifi = function (ssid, pass, security, opts, next) {
   self.checkWifi(true);
 
   function start () {
-    logs.info('Connecting to "%s" with %s security...', ssid, security);
+    logs.info('Connecting to "%s" with %s security...', ssid, security.length ? security : "no");
     (function timeoutloop () {
       var checkInterval = null;
       var acquiring = false;
