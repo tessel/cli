@@ -14,6 +14,8 @@ exports.Tessel = tessel_usb.Tessel;
 exports.findTessel = tessel_usb.findTessel;
 exports.listDevices = tessel_usb.listDevices;
 exports.bundleFiles = bundle.bundleFiles;
+exports.tarCode = bundle.tarCode;
+exports.logs = require('./logs');
 
 require('./commands');
 require('./script');

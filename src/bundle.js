@@ -141,8 +141,10 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
 
 // TODO should not be public,
 // relied on by debug push code path
-exports.tarCode = function (dirpath, pushdir, next)
+exports.tarCode = function (dirpath, options, next)
 {
+  options = Object(options);
+
   var fstr = fstream.Reader({path: dirpath, type: "Directory"})
   fstr.basename = '';
 
@@ -169,7 +171,7 @@ exports.tarCode = function (dirpath, pushdir, next)
         hasIndex = true;
       }
     }).on('end', function () {
-      if (!hasIndex) {
+      if (!hasIndex && !options.node) {
         logs.err('Command line generated bundle without an /_start.js file. Please report this error.');
         process.exit(1);
       }
