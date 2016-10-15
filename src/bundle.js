@@ -10,6 +10,7 @@
 var net = require('net');
 var fs = require('fs');
 var path = require('path')
+  , https = require('https')
   , temp = require('temp')
   , colonyCompiler = require('colony-compiler')
   , async = require('async')
@@ -18,6 +19,8 @@ var path = require('path')
   , effess = require('effess')
   , debug = require('debug')('tessel')
   , logs = require('../src/logs')
+  , request = require('request')
+  , zlib = require('zlib')
   ;
 
 // We want to force node-tar to not use extended headers.
@@ -138,48 +141,170 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
   });
 };
 
+var MIPS_CACHE_PATH = "mips_modules";
+var MIPS_BINARY_ROOT = "https://s3.amazonaws.com/tessel-mips-modules/";
+
+var fetchMipsModule = function (location, callback)
+{
+  // Read in the module version.
+  var filename = location + '/package.json'
+  var json = JSON.parse(fs.readFileSync(filename, 'utf8'));
+  var version = json.version;
+
+  var name = location.match(/[^\/]+$/)[0];
+  var mipsModulePath = path.join(MIPS_CACHE_PATH, name, version);
+
+  // Cache the mips binaries from server. The cache is located at MIPS_CACHE_PATH
+  if (fs.existsSync(mipsModulePath)) {
+    logs.info("Found cached binary module", name, version)
+    return setTimeout(function () { callback(mipsModulePath) });
+  }
+
+  var packageUrl = MIPS_BINARY_ROOT + name + '_' + version + '.tgz';
+  logs.info("Fetching binary module", packageUrl)
+  request({
+    url: packageUrl,
+    gzip: true
+  }).pipe(zlib.createGunzip()).pipe(tar.Extract({
+    path: mipsModulePath
+  })).on('end', function () {
+    logs.info("Fetched binary module", name, version)
+    callback(mipsModulePath);
+  }).on('error', function (err) {
+    fs.rmdirSync(mipsModulePath);
+    logs.err("No mips module found for", name, version, err);
+    process.exit(1);
+  });
+};
+
+var isBinaryReleasePath = function (location) {
+  var match = location.match(/(node_modules\/.+)\/build\/Release$/);
+  return match && match[1];
+};
+
+var createDirReader = function (root, base, filter)
+{
+  var reader = fstream.Reader({
+    path: root,
+    type: "Directory",
+    filter: filter
+  });
+  reader.basename = "";
+
+  var rebase = function (entry) {
+    if (base) {
+      entry.path = entry.path.replace(root, path.join(path.dirname(root), base));
+      entry.on("entry", rebase);
+    }
+    else {
+      // entry.root.path = entry.path;
+      entry.root = {path: entry.path};
+    }
+  };
+
+  reader.on('entry', rebase);
+
+  reader.on('error', function (err) {
+    logs.err('Error bundling code archive: ' + err);
+    process.exit(1);
+  });
+
+  return reader;
+};
 
 // TODO should not be public,
 // relied on by debug push code path
-exports.tarCode = function (dirpath, pushdir, next)
+exports.tarCode = function (dirpath, options, next)
 {
-  var fstr = fstream.Reader({path: dirpath, type: "Directory"})
-  fstr.basename = '';
+  options = Object(options);
 
-  fstr.on('entry', function (e) {
-    e.root = {path: e.path};
-  })
+  var streams = [];
+  var packedData = [];
 
-  fstr.on('error', function (err) {
-    logs.err('Error bundling code archive: ' + err);
+  var packer = tar.Pack();
+  packer._noProprietary = true;
+
+  packer.on('error', function (err) {
+    logs.err('Error in compressing code archive: ' + err);
     process.exit(1);
-  })
+  });
 
-  var bufs = [];
-  var p = tar.Pack();
-  p._noProprietary = true;
-  fstr.pipe(p).on('data', function (buf) {
-    bufs.push(buf);
-  }).on('end', function () {
-    var bundle = Buffer.concat(bufs);
+  var finalizePackage = function () {
+    var bundle = Buffer.concat(packedData);
 
     var hasIndex = false;
-    var p = tar.Parse().on('entry', function (a) {
-      if (a.path == '_start.js') {
+    var parser = tar.Parse().on('entry', function (entry) {
+      if (entry.path === '_start.js') {
         hasIndex = true;
       }
     }).on('end', function () {
       if (!hasIndex) {
         logs.err('Command line generated bundle without an /_start.js file. Please report this error.');
-        process.exit(1);
+        // process.exit(1);
       }
 
       next(null, bundle);
-    })
-    p.write(bundle);
-    p.end();
-  }).on('error', function (err) {
-    logs.err('Error in compressing code archive: ' + err);
-    process.exit(1);
-  });
-}
+    });
+
+    parser.write(bundle);
+    parser.end();
+  };
+
+  var startStream = function () {
+    var root = streams[0][0];
+    var base = streams[0][1];
+
+    var stream = createDirReader(root, base, filter);
+    stream.on('end', onStreamEnd);
+
+    var piped = stream.pipe(packer, {end: false}).on('data', function (data) {
+      packedData.push(data);
+    });
+
+    // Replace the arguments with the real stream.
+    streams.shift();
+    streams.unshift(piped);
+  };
+
+  var onStreamEnd = function () {
+    streams.shift().removeAllListeners('data');
+
+    if (streams.length) {
+      startStream();
+    }
+    else if (!pendingStreams) {
+      finalizePackage();
+    }
+  };
+
+  var pendingStreams = 0;
+  var queueStream = function (root, base) {
+    streams.push([root, base]);
+    if (pendingStreams) {
+      pendingStreams -= 1;
+      if (Array.isArray(streams[0])) startStream();
+    }
+  };
+
+  var filter = function (entry) {
+    if (entry.path.match(new RegExp(MIPS_CACHE_PATH + '$'))) return false;
+    if (entry.path.match(new RegExp(".git$"))) return false;
+
+    // If this is a binary release, spawn a new reader for the corresponding
+    // mips binaries and filter our the x86 binaries.
+    var modulePath = isBinaryReleasePath(entry.path);
+    if (modulePath) {
+      fetchMipsModule(modulePath, function (mipsPath) {
+        queueStream(mipsPath, modulePath);
+      });
+
+      pendingStreams += 1;
+      return false;
+    }
+
+    return true;
+  };
+
+  queueStream(dirpath, null);
+  startStream();
+};
