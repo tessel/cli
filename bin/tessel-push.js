@@ -27,8 +27,8 @@ var argv = require("nomnom")
     full: 'script.js',
     help: 'Run this script on Tessel.',
   })
-  .option('args', {
-    abbr: 'a',
+  .option('arguments', {
+    position: 1,
     list: true,
     help: 'Arguments to pass in as process.argv.'
   })
@@ -114,7 +114,7 @@ common.controller({stop: true}, function (err, client) {
   });
 
   function pushCode(){
-    client.run(pushpath, ['tessel', pushpath].concat(argv.args || []), {
+    client.run(pushpath, ['tessel', pushpath].concat(argv.arguments || []), {
       flash: true,
       single: argv.single,
     }, function (err) {
