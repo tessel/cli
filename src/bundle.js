@@ -65,6 +65,7 @@ exports.bundleFiles = function (startpath, args, files, opts, next)
       = 'process.env.DEPLOY_IP = ' + JSON.stringify(require('my-local-ip')()) + ';\n'
       + 'process.env.DEPLOY_TIMESTAMP = ' + JSON.stringify(String(Date.now())) + ';\n'
       + 'process.argv = ' + JSON.stringify(args) + ';\n'
+      + 'process.binding("tm").timestamp_update(' + JSON.stringify(Date.now()*1e3) + ');\n'
       + 'require(' + JSON.stringify('./app/' + startpath.replace('\\', '/')) + ');';
     fs.writeFileSync(path.join(dirpath, '_start.js'), stub);
 
