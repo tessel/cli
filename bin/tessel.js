@@ -71,6 +71,7 @@ var builtinCommands = {
   'install-drivers': 'install-drivers',
   'trademark' : 'trademark',
   'boot': 'boot',
+  'fake': 'fake'
 }
 
 if (process.argv.length < 3 || !builtinCommands[process.argv[2]]) {
